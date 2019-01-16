@@ -34,7 +34,7 @@ task copyRpmResources(type: Copy) {
 ospackage {
 	packageName = "${jenkinsNodeName}"
 	version = "0.3"
-	release = 7
+	release = 8
 	os = LINUX
 	type = BINARY
 	arch = NOARCH
@@ -54,20 +54,20 @@ buildRpm {
 	link("${jenkinsNodeDir}/java", "${jenkinsNodeDir}/${javaDir}")
 }
 
+repositories {
+	maven { 
+		credentials {
+	        username "$mavenRepoUser"
+	        password "$mavenRepoPwd"
+	    }
+		url "${mavenRepoBaseUrl}/yumrepodev" 
+	}
+}
+
 publishing {
 	publications {
 		yumRpm(IvyPublication) {
 			artifact buildRpm.outputs.getFiles().getSingleFile()
-		}
-	}
-	repositories {
-		ivy {
-			name = "${patchRepoName}"
-			url  "${mavenRepoBaseUrl}/${patchRepoName}"
-			credentials {
-				username = mavenRepoUser
-				password = mavenRepoPwd
-			}
 		}
 	}
 }
@@ -75,9 +75,8 @@ publishing {
 artifactory {
     contextUrl = "${mavenRepoBaseUrl}"  
     publish {
-
         repository {
-            repoKey = "${patchRepoName}"   
+            repoKey = "yumrepodev"   
             username = "${mavenRepoUser}"
             password = "${mavenRepoPwd}"
             ivy {
