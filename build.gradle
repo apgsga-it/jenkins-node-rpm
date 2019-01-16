@@ -1,5 +1,4 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
-import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
   	id 'nebula.ospackage' version '4.10.0'
   	id 'ivy-publish'  
@@ -9,7 +8,7 @@ project.ext {
 	serviceName = "jadas"
 	javaDist = "jdk-8u191-linux-x64.tar.gz"
 	javaDir = "jdk1.8.0_191"
-	distRepoUrl = "${mavenRepoBaseUrl}/apgPlatformDependencies"
+	distRepoUrl = "${mavenRepoBaseUrl}/yumrepodev"
 }
 
 def jenkinsNodeName = "apg-jenkins-${serviceName}-node"
@@ -28,6 +27,7 @@ task copyRpmResources(type: Copy) {
 	into "${buildDir}/resources"
 	include "**/*"
 	expand(jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
+   	filter(FixCrLfFilter.class,eol:FixCrLfFilter.CrLf.newInstance("lf"))
   	filteringCharset = 'UTF-8'
 }
  
