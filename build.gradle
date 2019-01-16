@@ -1,0 +1,96 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+plugins {
+  	id 'nebula.ospackage' version '4.10.0'
+  	id 'ivy-publish'  
+  	id 'com.jfrog.artifactory' version '4.7.3'
+}
+project.ext {
+	serviceName = "jadas"
+	javaDist = "jdk-8u191-linux-x64.tar.gz"
+	javaDir = "jdk1.8.0_191"
+	distRepoUrl = "${mavenRepoBaseUrl}/apgPlatformDependencies"
+}
+
+def jenkinsNodeName = "apg-jenkins-${serviceName}-node"
+def jenkinsNodeDir = "/var/opt/${jenkinsNodeName}"
+
+task copyRpmScripts (type: Copy) {
+	from "packageing/rpm"
+	into "${buildDir}/rpm"
+	include "**/*.sh"
+	expand(jenkinsNodeDir:jenkinsNodeDir,jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
+  	filteringCharset = 'UTF-8'
+}
+
+task copyRpmResources(type: Copy) {
+	from "packageing/profile"
+	into "${buildDir}/resources"
+	include "**/*"
+	expand(jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
+  	filteringCharset = 'UTF-8'
+}
+ 
+ospackage {
+	packageName = "${jenkinsNodeName}"
+	version = "0.3"
+	release = 7
+	os = LINUX
+	type = BINARY
+	arch = NOARCH
+	user "root"
+	preInstall file("${buildDir}/rpm/pre-install.sh")
+	postInstall file("${buildDir}/rpm/post-install.sh")
+    postUninstall file("${buildDir}/rpm/post-uninstall.sh")
+   
+    from("${buildDir}/resources") {
+		into "${jenkinsNodeDir}"
+	}
+}
+
+buildRpm {
+	directory("${jenkinsNodeDir}", 0775 )
+	directory("${jenkinsNodeDir}/work", 0775)
+	link("${jenkinsNodeDir}/java", "${jenkinsNodeDir}/${javaDir}")
+}
+
+publishing {
+	publications {
+		yumRpm(IvyPublication) {
+			artifact buildRpm.outputs.getFiles().getSingleFile()
+		}
+	}
+	repositories {
+		ivy {
+			name = "${patchRepoName}"
+			url  "${mavenRepoBaseUrl}/${patchRepoName}"
+			credentials {
+				username = mavenRepoUser
+				password = mavenRepoPwd
+			}
+		}
+	}
+}
+
+artifactory {
+    contextUrl = "${mavenRepoBaseUrl}"  
+    publish {
+
+        repository {
+            repoKey = "${patchRepoName}"   
+            username = "${mavenRepoUser}"
+            password = "${mavenRepoPwd}"
+            ivy {
+                 artifactLayout = "${buildRpm.outputs.getFiles().getSingleFile().getName()}"
+            }
+        }
+        defaults {
+            publications ('yumRpm')
+            publishBuildInfo = false  
+            publishArtifacts = true   
+            publishPom = false   
+            publishIvy = false  
+        }
+    }
+}
+buildRpm {dependsOn copyRpmScripts, copyRpmResources}
