@@ -93,3 +93,4 @@ artifactory {
     }
 }
 buildRpm {dependsOn copyRpmScripts, copyRpmResources}
+artifactoryPublish {dependsOn buildRpm}
