@@ -1,6 +1,7 @@
 #!bash
 # post-install.sh
 #
+set -x
 echo "Post Install script: \$1"
 
 
@@ -13,7 +14,6 @@ if [ "\$1" = "1" ]; then
 	rm -rf \$WORK_DIR
 	echo "Deleted temp working directory \$WORK_DIR"
 	echo "Installation and configuration of Java Environment done."
-	
 fi
 
 exit 0
