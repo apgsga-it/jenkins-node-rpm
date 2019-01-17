@@ -16,6 +16,7 @@ if [ "\$1" = "1" ]; then
 	echo "Installation and configuration of Java Environment done."
 	echo "Change to owner to ${jenkinsNodeName}"
 	chown -R ${jenkinsNodeName}:${jenkinsNodeName} ${jenkinsNodeDir}
+	chmod 700 ${jenkinsNodeDir}/.ssh/authorized_keys 
 fi
 
 exit 0
