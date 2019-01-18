@@ -7,7 +7,7 @@ fi
 
 # User specific environment and startup programs
 
-JAVA_HOME=\$HOME/java;export JAVA_HOME
-PATH=\$HOME/bin:\$HOME/java/bin:\$PATH; export PATH
+JAVA_HOME=${jenkinsNodeDir}/${javaDir};export JAVA_HOME
+PATH=\$HOME/bin:\$JAVA_HOME/bin:\$PATH; export PATH
 
 

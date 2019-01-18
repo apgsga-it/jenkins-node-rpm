@@ -4,21 +4,24 @@ plugins {
   	id 'ivy-publish'  
   	id 'com.jfrog.artifactory' version '4.7.3'
 }
-project.ext {
-	serviceName = "jadas"
-	javaDist = "jdk-8u191-linux-x64.tar.gz"
-	javaDir = "jdk1.8.0_191"
-	distRepoUrl = "${mavenRepoBaseUrl}/apgPlatformDependencies"
-}
 
+def serviceName = project.hasProperty('serviceName') ? project.property('serviceName') : "jadas"
+println "serviceName = ${serviceName}"
+def distRepoUrl = "${mavenRepoBaseUrl}/apgPlatformDependencies"
 def jenkinsNodeName = "apg-jenkins-${serviceName}-node"
-def jenkinsNodeDir = "/var/opt/${jenkinsNodeName}"
+def jenkinsNodeDir = "/opt/${jenkinsNodeName}"
+def jenkinsNodeDataDir = "/var/opt/${jenkinsNodeName}"
+def jenkinsNodeHomeDir = "/home/${jenkinsNodeName}"
+// TODO (18.2, che, uge) : needs to be changed to a Group which has rights to install rpm on the node mashine 
+def jenkinsNodeGroup = project.hasProperty('jenkinsNodeGroup') ? project.property('jenkinsNodeGroup') :  "${jenkinsNodeName}"
+println "jenkinsNodeGroup = ${jenkinsNodeGroup}"
+
 
 task copyRpmScripts (type: Copy) {
 	from "packageing/rpm"
 	into "${buildDir}/rpm"
 	include "**/*.sh"
-	expand(jenkinsNodeDir:jenkinsNodeDir,jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
+	expand(jenkinsNodeGroup:jenkinsNodeGroup,jenkinsNodeDataDir:jenkinsNodeDataDir,jenkinsNodeHomeDir:jenkinsNodeHomeDir,jenkinsNodeDir:jenkinsNodeDir,jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
   	filteringCharset = 'UTF-8'
 }
 
@@ -26,7 +29,7 @@ task copyRpmResources(type: Copy) {
 	from "packageing/profile"
 	into "${buildDir}/resources"
 	include "**/*"
-	expand(jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
+	expand(jenkinsNodeDir:jenkinsNodeDir,javaDir:javaDir,jenkinsNodeName:jenkinsNodeName,javaDist:javaDist,distRepoUrl:distRepoUrl)
    	filter(FixCrLfFilter.class,eol:FixCrLfFilter.CrLf.newInstance("lf"))
   	filteringCharset = 'UTF-8'
 }
@@ -34,7 +37,7 @@ task copyRpmResources(type: Copy) {
 ospackage {
 	packageName = "${jenkinsNodeName}"
 	version = "0.6"
-	release = 1
+	release = 8
 	os = LINUX
 	type = BINARY
 	arch = NOARCH
@@ -44,14 +47,14 @@ ospackage {
     postUninstall file("${buildDir}/rpm/post-uninstall.sh")
    
     from("${buildDir}/resources") {
-		into "${jenkinsNodeDir}"
+		into "${jenkinsNodeHomeDir}"
 	}
 }
 
 buildRpm {
 	directory("${jenkinsNodeDir}", 0775 )
-	directory("${jenkinsNodeDir}/work", 0775)
-	link("${jenkinsNodeDir}/jdk", "${jenkinsNodeDir}/${javaDir}")
+	directory("${jenkinsNodeDataDir}/work", 0775)
+	link("${jenkinsNodeHomeDir}/jdk", "${jenkinsNodeDir}/${javaDir}")
 }
 
 repositories {

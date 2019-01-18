@@ -14,9 +14,14 @@ if [ "\$1" = "1" ]; then
 	rm -rf \$WORK_DIR
 	echo "Deleted temp working directory \$WORK_DIR"
 	echo "Installation and configuration of Java Environment done."
-	echo "Change to owner to ${jenkinsNodeName}"
-	chown -R ${jenkinsNodeName}:${jenkinsNodeName} ${jenkinsNodeDir}
-	chmod 700 ${jenkinsNodeDir}/.ssh/authorized_keys 
+	echo "Fixing owner and rights "
+	chown -R ${jenkinsNodeName}:${jenkinsNodeGroup} ${jenkinsNodeDir}
+	chown -R ${jenkinsNodeName}:${jenkinsNodeGroup} ${jenkinsNodeDataDir}
+	chown -R ${jenkinsNodeName}:${jenkinsNodeGroup} ${jenkinsNodeHomeDir}
+	chmod 700 ${jenkinsNodeHomeDir}
+	chmod 700 ${jenkinsNodeHomeDir}/.ssh
+	chmod 600 ${jenkinsNodeHomeDir}/.ssh/authorized_keys 
+
 fi
 
 exit 0
