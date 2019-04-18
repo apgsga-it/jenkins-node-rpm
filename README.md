@@ -11,9 +11,9 @@ a user with an enviroment, which points it's own java dist
 
 TODO The build parameters are: 
 
--P=<serviceName> : The service name, which the Node ins responsible for
+-P=serviceName : The service name, which the Node ins responsible for
 
--P=<group> : The group under which the agent , will run
+-P=group : The group under which the agent , will run
   
 Currently both parameters are hard coded into the script
 
