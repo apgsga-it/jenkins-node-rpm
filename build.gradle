@@ -37,7 +37,7 @@ task copyRpmResources(type: Copy) {
 ospackage {
 	packageName = "${jenkinsNodeName}"
 	version = "0.6"
-	release = 8
+	release = 9
 	os = LINUX
 	type = BINARY
 	arch = NOARCH
